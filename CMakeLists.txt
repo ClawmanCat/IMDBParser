@@ -49,7 +49,7 @@ if (EXISTS ${PARSER_DATASRC})
           get_filename_component(srcfile ${srcpath} NAME_WLE)
           message(STATUS "Checking archive ${srcfile}...")
 
-          if (NOT EXISTS "${PARSER_DATADST}/${srcfile}.list")
+          if (NOT EXISTS "${PARSER_DATADST}/${srcfile}")
                message(STATUS "   ... Unpacked archive does not exist and will be created.")
 
                execute_process(COMMAND gzip -dkv ${srcpath})
