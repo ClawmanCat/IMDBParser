@@ -43,7 +43,7 @@ if (EXISTS ${PARSER_DATASRC})
           file(MAKE_DIRECTORY ${PARSER_DATADST})
      endif()
 
-     file(GLOB_RECURSE packed_data CONFIGURE_DEPENDS LIST_DIRECTORIES false "${PARSER_DATASRC}" "*.gz")
+     file(GLOB_RECURSE packed_data CONFIGURE_DEPENDS LIST_DIRECTORIES false "${PARSER_DATASRC}/*.gz")
 
      foreach (srcpath ${packed_data})
           get_filename_component(srcfile ${srcpath} NAME_WLE)
@@ -61,7 +61,13 @@ if (EXISTS ${PARSER_DATASRC})
 endif()
 
 
-set(CMAKE_CXX_STANDARD 17)
+add_compile_definitions(PARSER_DATASOURCE_DIR="${PARSER_DATADST}")
+add_compile_definitions(PARSER_CSV_DIR="${CMAKE_CURRENT_SOURCE_DIR}/csv")
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_subdirectory ("IMDBParser")
+add_subdirectory("IMDBParser")
