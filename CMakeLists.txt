@@ -3,6 +3,33 @@
 project ("IMDBParser")
 
 
+# Setup Conan Dependencies
+if (WIN32)
+     # Conan does not work with compilers other than MSVC on Windows.
+     set(PREV_CMAKE_C_COMPILER ${CMAKE_C_COMPILER})
+     set(PREV_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+
+     set(CMAKE_C_COMPILER MSVC)
+     set(CMAKE_CXX_COMPILER MSVC)
+
+     set(CONAN_DISABLE_CHECK_COMPILER TRUE)
+endif()
+
+
+include(FindPythonInterp)
+execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/run_conan.py)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/${CMAKE_BUILD_TYPE}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+
+if (WIN32)
+     set(CMAKE_C_COMPILER ${PREV_CMAKE_C_COMPILER})
+     set(CMAKE_CXX_COMPILER ${PREV_CMAKE_CXX_COMPILER})
+endif()
+
+
+
 set(PARSER_DATASRC ${CMAKE_CURRENT_SOURCE_DIR}/data/compressed/)
 set(PARSER_DATADST ${CMAKE_CURRENT_SOURCE_DIR}/data/decompressed/)
 

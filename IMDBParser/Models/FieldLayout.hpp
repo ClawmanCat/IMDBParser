@@ -2,6 +2,7 @@
 
 #include <IMDBParser/Utility/Traits.hpp>
 #include <IMDBParser/Utility/Typedefs.hpp>
+#include <IMDBParser/Utility/Enum.hpp>
 
 #include <string_view>
 #include <string>
@@ -39,7 +40,7 @@ namespace IMDBParser {
             if      constexpr (std::is_integral_v<T> && std::is_signed_v<T>)                                     return FieldLayout::INT;
             else if constexpr (std::is_integral_v<T>)                                                            return FieldLayout::UINT;
             else if constexpr (std::is_floating_point_v<T>)                                                      return FieldLayout::FLOAT;
-            else if constexpr (std::is_enum_v<T>)                                                                return FieldLayout::INT;
+            else if constexpr (std::is_base_of_v<EnumBase, T>)                                                   return FieldLayout::NVARCHAR;
             else if constexpr (is_any_of_v<T, std::string, std::u8string, std::string_view, std::u8string_view>) return FieldLayout::NVARCHAR;
 
             else static_assert(always_false_v<T>, "Unknown layout type!");
@@ -57,8 +58,15 @@ namespace IMDBParser {
         }
 
 
+        template <typename T, std::size_t offset> constexpr inline const void* addressor_enum(const void* obj) {
+            const void* address = addressor_pod<T, offset>(obj);
+            return &*(reinterpret_cast<const T*>(address)->to_string().cbegin());
+        }
+
+
         template <typename T, std::size_t offset> constexpr inline Fn<const void*, const void*> get_addressor_fn(void) {
             if constexpr (is_any_of_v<T, std::string, std::u8string, std::string_view, std::u8string_view>) return &addressor_heap<T, offset>;
+            else if constexpr (std::is_base_of_v<EnumBase, T>) return &addressor_enum<T, offset>;
             else return &addressor_pod<T, offset>;
         }
     }

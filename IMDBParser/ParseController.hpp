@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <string_view>
 #include <type_traits>
+#include <iostream>
 
 
 namespace IMDBParser {
@@ -30,8 +31,8 @@ namespace IMDBParser {
 
 
         const static inline std::tuple list_parsers {
-            std::tuple { "actors.list",    ActorParser   },
-            std::tuple { "actresses.list", ActressParser }
+            std::tuple { "actresses.list", ActressParser },
+            std::tuple { "actors.list",    ActorParser   }
         };
 
         
@@ -42,13 +43,17 @@ namespace IMDBParser {
                 const auto& [filename, parser] = list_parser_pair;
 
                 // Merge the lines since the actual seperator might not be a newline.
+                std::cout << "Loading file " << filename << '\n';
                 const auto filecontents = join(FileIO::read(join_variadic("/", DATA_FOLDER, filename)), "\n");
+                std::cout << "File Loaded\n";
 
                 auto result = parser.parse(filecontents);
 
+                std::cout << "Writing CSV for file " << filename << '\n';
                 expand(result, [&filename = filename] <typename Model> (const std::vector<Model>& data, auto index  ) {
                     FileIO::write_csv<Model>(join_variadic("", CSV_FOLDER, "/", FileIO::stem(filename), ".csv"), data);
                 });
+                std::cout << "Finished writing CSV\n";
             });
         }
         

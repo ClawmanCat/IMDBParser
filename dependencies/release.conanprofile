@@ -1,0 +1,10 @@
+[settings]
+compiler=Visual Studio
+compiler.runtime=MD
+compiler.version=16
+compiler.toolset=v142
+
+arch=x86_64
+os=Windows
+
+build_type=Release
