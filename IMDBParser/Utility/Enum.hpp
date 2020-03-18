@@ -39,7 +39,7 @@ public:                                                                 \
                                                                         \
     explicit operator UType(void) const { return value; }               \
                                                                         \
-    std::string_view to_string(void) {                                  \
+    std::string_view to_string(void) const {                            \
         constexpr std::string_view values[] = {                         \
             BOOST_PP_SEQ_ENUM(                                          \
                 BOOST_PP_SEQ_FOR_EACH(                                  \

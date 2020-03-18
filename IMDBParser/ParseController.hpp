@@ -30,10 +30,11 @@ namespace IMDBParser {
         }
 
 
-        const static inline std::tuple list_parsers {
-            std::tuple { "actresses.list", ActressParser },
-            std::tuple { "actors.list",    ActorParser   }
-        };
+        const static inline std::tuple list_parsers = std::make_tuple(
+            std::tuple { std::string_view("actresses_test.list"), ActressTestParser }
+            //std::tuple { "actresses.list", ActressParser },
+            //std::tuple { "actors.list",    ActorParser   }
+        );
 
         
         void controller_main(std::vector<std::string>&& args) {
@@ -43,17 +44,21 @@ namespace IMDBParser {
                 const auto& [filename, parser] = list_parser_pair;
 
                 // Merge the lines since the actual seperator might not be a newline.
-                std::cout << "Loading file " << filename << '\n';
-                const auto filecontents = join(FileIO::read(join_variadic("/", DATA_FOLDER, filename)), "\n");
-                std::cout << "File Loaded\n";
+                std::cout << "Loading file " << filename << "...\n";
+                const auto filecontents = FileIO::read(join_variadic("/", DATA_FOLDER, filename));
+                std::cout << "File loaded!\n";
 
+                std::cout << "Parsing file " << filename << "...\n";
                 auto result = parser.parse(filecontents);
+                std::cout << "Parsing completed!\n";
 
-                std::cout << "Writing CSV for file " << filename << '\n';
+                std::cout << "Writing CSV for file " << filename << "...\n";
                 expand(result, [&filename = filename] <typename Model> (const std::vector<Model>& data, auto index  ) {
-                    FileIO::write_csv<Model>(join_variadic("", CSV_FOLDER, "/", FileIO::stem(filename), ".csv"), data);
+                    std::cout << "Writing CSV for model " << typename_string<Model>(true) << "...\n";
+                    FileIO::write_csv<Model>(join_variadic("", CSV_FOLDER, "/", FileIO::stem(filename), "_", typename_string<Model>(true), ".csv"), data);
+                    std::cout << "Finished writing model!\n";
                 });
-                std::cout << "Finished writing CSV\n";
+                std::cout << "Finished writing CSV!\n";
             });
         }
         

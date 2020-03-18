@@ -98,7 +98,7 @@ namespace IMDBParser {
                 // Required Fields
                 ModelActorAppearance appearance;
                 appearance.actor       = actor.name;
-                appearance.appeared_in = capture_groups(appearance_details[1], std::regex("\"?(.+)\"?.*"))[0];
+                appearance.appeared_in = capture_groups(appearance_details[0], std::regex("\"?(.+)\"?.*"))[0];
                 appearance.release_yr  = std::stoi(std::string(appearance_details[1]));
 
                 appearance.media_type = matches(appearance_details[1], std::regex("\\s*\".+\"\\s*(mini)\\s*")) 
@@ -110,7 +110,7 @@ namespace IMDBParser {
 
                 
                 // Optional Fields
-                unsigned fieldcount = 0;
+                unsigned fieldcount = 2;
                 auto has_next = [&]() { return fieldcount < appearance_details.size(); };
                 auto get_next = [&]() { return appearance_details[fieldcount]; };
 
@@ -157,7 +157,7 @@ namespace IMDBParser {
         &Detail::actor_parser_fn<true>,
         std::regex("\r?\n\r?\n"),
         240,
-        20152626
+        20152625
     };
 
 
@@ -165,6 +165,15 @@ namespace IMDBParser {
         &Detail::actor_parser_fn<false>,
         std::regex("\r?\n\r?\n"),
         242,
-        12099757
+        12099756
+    };
+
+
+    // For testing only
+    inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActressTestParser {
+        &Detail::actor_parser_fn<false>,
+        std::regex("\r?\n\r?\n"),
+        0,
+        9695
     };
 }

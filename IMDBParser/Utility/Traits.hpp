@@ -20,9 +20,22 @@ namespace IMDBParser {
     template <typename T> constexpr inline bool always_false_v = always_false<T>::value;
 
 
+    // For storing variadic template parameters.
     template <typename... Ts> struct Pack {
         constexpr static std::size_t size = sizeof...(Ts);
 
         template <template <typename...> typename X> using Apply = X<Ts...>;
     };
+
+
+    // Is T an instantiation of the template TP?
+    template <typename T, template <typename...> typename TP> struct is_template_instantiation {
+    private:
+        template <typename X, typename...> struct test            { constexpr static bool value = false; };
+        template <typename... Xs         > struct test<TP<Xs...>> { constexpr static bool value = true;  };
+    public:
+        constexpr static bool value = test<T>::value;
+    };
+
+    template <typename T, template <typename...> typename TP> constexpr static bool is_template_instantiation_v = is_template_instantiation<T, TP>::value;
 }

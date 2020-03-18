@@ -30,11 +30,17 @@ namespace IMDBParser {
             : parser(std::move(parsefn)), seperator(std::move(seperator)), begin(begin), end(end) {}
 
 
-        ParseResult parse(std::string_view data) const {
-            data = get_lines(data, begin, end);
+        template <typename String>  // Can't use string_view here since we can't convert the container.
+        ParseResult parse(const std::vector<String>& data) const {
+            std::string cat;
+            cat.reserve((end - begin) * 75);
+
+            for (unsigned i = begin; i < end; ++i) cat.append(join_variadic("", data[i], "\n"));
+
 
             std::vector<std::string_view> split_view;
-            std::visit([&](const auto& s) { split_view = split(data, s); }, seperator);
+            std::visit([&](const auto& s) { split_view = split(cat, s); }, seperator);
+
 
             ParseResult result;
             for (auto view : split_view) result = merge_vector_tuples(std::vector{ std::move(result), parser(view) });

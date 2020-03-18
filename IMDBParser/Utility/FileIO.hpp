@@ -4,6 +4,7 @@
 #include <IMDBParser/Utility/StringUtils.hpp>
 #include <IMDBParser/Utility/Traits.hpp>
 #include <IMDBParser/Utility/Memory.hpp>
+#include <IMDBParser/Utility/Unreachable.hpp>
 #include <IMDBParser/Models/FieldLayout.hpp>
 
 #include <vector>
@@ -66,13 +67,16 @@ namespace IMDBParser::FileIO {
 
     template <typename Model>
     inline void write_csv(std::string_view path, const std::vector<Model>& data) {
+        constexpr std::string_view seperator = ";";
+
+
         const std::vector<FieldLayout> layout = Model::GetLayout();
 
         std::vector<std::string> result;
 
 
         std::string header;
-        for (const auto& field : layout) header.append(join_variadic(field.name, ","));
+        for (const auto& field : layout) header.append(join_variadic("", field.name, seperator));
         header.pop_back();  // Trailing comma
 
         result.push_back(header);
@@ -84,20 +88,25 @@ namespace IMDBParser::FileIO {
             for (const auto& field : layout) {
                 const void* address = field.addressor_fn(&obj);
 
+                if (!address) {
+                    row << seperator;
+                    continue;
+                }
+
                 switch (field.type) {
                     case FieldLayout::INT:
-                        row << Memory::parse_signed(address, field.size) << ',';
+                        row << Memory::parse_signed(address, field.size) << seperator;
                         break;
                     case FieldLayout::UINT:
-                        row << Memory::parse_unsigned(address, field.size) << ',';
+                        row << Memory::parse_unsigned(address, field.size) << seperator;
                         break;
                     case FieldLayout::FLOAT:
-                        row << Memory::parse_float(address, field.size) << ',';
+                        row << Memory::parse_float(address, field.size) << seperator;
                         break;
                     case FieldLayout::NVARCHAR:
-                        row << Memory::parse_string(address, field.size) << ',';
+                        row << Memory::parse_string(address, field.size) << seperator;
                         break;
-                    default: __assume(0);
+                    default: unreachable_path;
                 }
             }
 

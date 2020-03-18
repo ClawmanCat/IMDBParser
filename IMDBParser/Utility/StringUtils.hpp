@@ -1,5 +1,7 @@
 #pragma once
 
+#include <IMDBParser/Utility/Unreachable.hpp>
+
 #include <vector>
 #include <string_view>
 #include <string>
@@ -69,36 +71,23 @@ namespace IMDBParser {
     }
 
 
-    // Returns lines [begin, end) of the given string_view.
-    // If the source string does not contain the given lines, the behaviour is undefined.
-    inline std::string_view get_lines(std::string_view source, std::size_t begin, std::size_t end) {
-        std::size_t diff = end - begin;
-
-        while (begin-- > 0) source.remove_prefix(source.find('\n') + 1);
-
-        auto end_pos = 0;
-        while (diff-- > 0) end_pos = source.find('\n', end_pos) + 1;
-
-        source.remove_suffix(source.size() - end_pos + 1);
-
-        return source;
-    }
-
-
     inline std::vector<std::string_view> capture_groups(std::string_view source, std::regex regex) {
         using iterator = typename std::string_view::iterator;
 
         std::vector<std::string_view> result;
 
-        std::match_results<iterator> matches;
-        while (std::regex_search(source.begin(), source.end(), matches, regex)) {
-            for (const auto& match : matches) {
-                // C++20 has a proper constructor for this, but it is not yet implemented in the MSVC STL.
-                result.push_back(std::string_view(&*(match.first), (match.second - match.first)));
-            }
+        for (
+            auto it = std::regex_iterator<iterator>(source.begin(), source.end(), regex);
+            it != std::regex_iterator<iterator>();
+            ++it
+        ) {
+            std::match_results<iterator> matches = *it;
+            for (unsigned i = 1; i < matches.size(); ++i) {
+                const auto& match = matches[i];
 
-            auto suff = matches.suffix();
-            source = std::string_view(&*(suff.first), (suff.second - suff.first));
+                if (match.second - match.first <= 0) continue;
+                result.push_back(std::string_view(&*match.first, match.second - match.first));
+            }
         }
 
         return result;
@@ -145,7 +134,7 @@ namespace IMDBParser {
 
         auto valueof = [&](char c) {
             for (const auto& [k, v] : values) if (k == c) return v;
-            __assume(0);
+            unreachable_path;
         };
 
         unsigned result = 0;
@@ -169,5 +158,33 @@ namespace IMDBParser {
         source.remove_suffix(1);
 
         return source;
+    }
+
+
+    namespace Detail {
+        template <typename T> inline std::string_view typename_string_impl(std::string_view source, std::size_t begin, std::size_t end, bool remove_namespace) {
+            source.remove_prefix(begin);
+            source.remove_suffix(end);
+
+            if (remove_namespace) {
+                auto where = source.rfind("::");
+                source.remove_prefix(where + 2);
+            }
+
+            return source;
+        }
+    }
+
+
+    template <typename T> inline std::string_view typename_string(bool remove_namespace = false) {
+    #ifdef _MSC_VER
+        return Detail::typename_string_impl<T>(__FUNCSIG__, 64, 1, remove_namespace);
+    #elif defined __clang__
+        return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 56, 1, remove_namespace);
+    #elif defined __GNUC__
+        return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 61, 50, remove_namespace);
+    #else
+        #error "Unknown Compiler! Don't know how to get typename string."
+    #endif
     }
 }
