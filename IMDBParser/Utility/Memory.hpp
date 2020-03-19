@@ -41,7 +41,7 @@ namespace IMDBParser::Memory {
     }
 
 
-    inline std::string_view parse_string(const void* memory, std::size_t size) {
-        return std::string_view((const char*) memory);
+    inline std::wstring_view parse_string(const void* memory, std::size_t size) {
+        return std::wstring_view((const wchar_t*) memory);
     }
 }

@@ -33,29 +33,31 @@ namespace IMDBParser {
         //
         // TODO: Add command line flag to automatically remove questionable entries.
         // TODO: Support unicode.
-        template <bool Male> inline ActorParserResult actor_parser_fn(std::string_view column) {
+        template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view column, unsigned& warn_count, unsigned& err_count) {
             ActorParserResult result;
 
-            auto raise_anomaly = [&](std::string message, bool except = true) {
+            auto raise_anomaly = [&](std::string_view message, bool except = true) {
                 auto fn = except ? &raise_exception : &raise_warning;
 
-                fn(join_variadic("",
-                    except ? "Failed to parse column" : "Warning while parsing column",
-                    " \"",
+                fn(join_variadic(L"",
+                    except ? L"Failed to parse column" : L"Warning while parsing column",
+                    L" \"",
                     column,
-                    "\": ",
-                    message,
-                    except ? " (Column will be skipped.)" : ""
+                    L"\": ",
+                    to_wstring(message),
+                    except ? L" (Column will be skipped.)" : L""
                 ));
+
+                except ? ++err_count : ++warn_count;
             };
 
 
-            auto name_appearance_split = split_on_first_recurring(column, '\t');
+            auto name_appearance_split = split_on_first_recurring(column, L'\t');
             if (name_appearance_split == std::nullopt) { raise_anomaly("Column does not contain name/movie[] pair.", true); return {}; }
 
 
             // Parse Actor Name
-            auto actor_details = capture_groups(name_appearance_split.value()[0], std::regex(R"REGEX((?:['"]\s*(.+)\s*['"],\s+)?(.+))REGEX"));
+            auto actor_details = capture_groups(name_appearance_split.value()[0], std::wregex(LR"REGEX((?:['"]\s*(.+)\s*['"],\s+)?(.+))REGEX"));
             if (actor_details.size() < 1) { raise_anomaly("Column does not contain a valid actor name.", true); return {}; }
 
             ModelActor actor;
@@ -69,16 +71,12 @@ namespace IMDBParser {
             }
 
 
-            if (contains_any(actor.name, "~`!@#$%^&*_+=[]{}\\|'\";:,<>/?0123456789")) {}
-                //raise_anomaly("Unexpected characters found in actor name. Column might be parsed incorrectly!", false);
-
-
-            if (auto pos = actor.name.find(','); pos != std::string::npos && pos != 0) {
+            if (auto pos = actor.name.find(','); pos != std::wstring::npos && pos != 0) {
                 // lastname, firstname
-                auto split_name = capture_groups(actor.name, std::regex("(\\S+),\\s+(\\S+)"));
+                auto split_name = capture_groups(actor.name, std::wregex(L"(.+),\\s+(.+)"));
 
                 actor.firstname = split_name[1];
-                actor.lastname  = matches_any(split_name[0], "", "-", "--", ".") ? "" : split_name[0];  // Null values.
+                actor.lastname  = matches_any(split_name[0], L"", L"-", L"--", L".") ? L"" : split_name[0];  // Null values.
             } else {
                 raise_anomaly("Actor name does not match lastname, firstname pattern. These fields will be NULL.", false);
             }
@@ -87,10 +85,10 @@ namespace IMDBParser {
 
 
             // Parse Actor Appearances
-            for (const auto& line : split(name_appearance_split.value()[1], std::regex("\r?\n"))) {
+            for (const auto& line : split(name_appearance_split.value()[1], std::wregex(L"\r?\n"))) {
                 auto appearance_details = capture_groups(
                     line, 
-                    std::regex(R"REGEX(\s*(.+)\s+\((\d\d\d\d)(?:\/([IVXLCDM]+))?\)\s*(?:\((TV|V)\)\s*)?(?:(\{.+\})\s*)?(?:\((?:(uncredited)|(?:as\s+(.+)))\)\s*)?(?:(\[.+\])\s*)?(?:(\<\d+\>))?)REGEX")
+                    std::wregex(LR"REGEX(\s*(.+)\s+\((\d\d\d\d)(?:\/([IVXLCDM]+))?\)\s*(?:\((TV|V)\)\s*)?(?:(\{.+\})\s*)?(?:\((?:(uncredited)|(?:as\s+(.+)))\)\s*)?(?:(\[.+\])\s*)?(?:(\<\d+\>))?)REGEX")
                 );
 
                 if (appearance_details.size() < 2) { raise_anomaly("Failed to parse actor movie listing.", true); continue; }
@@ -98,12 +96,12 @@ namespace IMDBParser {
                 // Required Fields
                 ModelActorAppearance appearance;
                 appearance.actor       = actor.name;
-                appearance.appeared_in = capture_groups(appearance_details[0], std::regex("\"?(.+)\"?.*"))[0];
-                appearance.release_yr  = std::stoi(std::string(appearance_details[1]));
+                appearance.appeared_in = capture_groups(appearance_details[0], std::wregex(L"\\\"?([^\\\"]+)\\\"?"))[0];
+                appearance.release_yr  = std::stoi(std::wstring(appearance_details[1]));
 
-                appearance.media_type = matches(appearance_details[1], std::regex("\\s*\".+\"\\s*(mini)\\s*")) 
+                appearance.media_type = partial_matches(appearance_details[0], std::wregex(LR"REGEX(\".+\"\s+\(mini\))REGEX")) 
                     ? ModelActorAppearance::MediaType::MINI_TV_SERIES
-                    : matches(appearance_details[1], std::regex("\\s*\".+\"\\s*"))
+                    : partial_matches(appearance_details[1], std::wregex(LR"REGEX(\".+\"\s*)REGEX"))
                         ? ModelActorAppearance::MediaType::TV_SERIES
                         : ModelActorAppearance::MediaType::MOVIE;
 
@@ -119,28 +117,28 @@ namespace IMDBParser {
                     ++fieldcount;
                 }
 
-                if (has_next() && (matches_any(get_next(), "TV", "V"))) {
-                    appearance.release_type = (get_next() == "TV") ? ModelActorAppearance::ReleaseType::TV : ModelActorAppearance::ReleaseType::VIDEO;
+                if (has_next() && (matches_any(get_next(), L"TV", L"V"))) {
+                    appearance.release_type = (get_next() == L"TV") ? ModelActorAppearance::ReleaseType::TV : ModelActorAppearance::ReleaseType::VIDEO;
                     ++fieldcount;
                 } else appearance.release_type = ModelActorAppearance::ReleaseType::CINEMA;
 
-                if (has_next() && is_surrounded_with(get_next(), '{', '}')) {
+                if (has_next() && is_surrounded_with(get_next(), L'{', L'}')) {
                     appearance.scene = desurround(get_next());
                     ++fieldcount;
                 }
 
-                if (has_next() && !is_surrounded_with(get_next(), '[', ']') && !is_surrounded_with(get_next(), '<', '>')) {
+                if (has_next() && !is_surrounded_with(get_next(), L'[', L']') && !is_surrounded_with(get_next(), L'<', L'>')) {
                     appearance.credited_as = get_next();
                     ++fieldcount;
                 }
 
-                if (has_next() && is_surrounded_with(get_next(), '[', ']')) {
+                if (has_next() && is_surrounded_with(get_next(), L'[', L']')) {
                     appearance.role = desurround(get_next());
                     ++fieldcount;
                 }
 
                 if (has_next()) {
-                    appearance.billing_position = std::stoi(std::string(desurround(get_next())));
+                    appearance.billing_position = std::stoi(std::wstring(desurround(get_next())));
                 }
 
 
@@ -154,7 +152,7 @@ namespace IMDBParser {
 
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActorParser {
         &Detail::actor_parser_fn<true>,
-        "\r\n\r\n",
+        L"\r\n\r\n",
         240,
         20152625
     };
@@ -162,7 +160,7 @@ namespace IMDBParser {
 
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActressParser {
         &Detail::actor_parser_fn<false>,
-        "\r\n\r\n",
+        L"\r\n\r\n",
         242,
         12099756
     };
@@ -171,7 +169,7 @@ namespace IMDBParser {
     // For testing only
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActressTestParser {
         &Detail::actor_parser_fn<false>,
-        "\r\n\r\n",
+        L"\r\n\r\n",
         0,
         9695
     };

@@ -44,7 +44,7 @@ namespace IMDBParser {
             else if constexpr (std::is_integral_v<T>)                                                            return FieldLayout::UINT;
             else if constexpr (std::is_floating_point_v<T>)                                                      return FieldLayout::FLOAT;
             else if constexpr (std::is_base_of_v<EnumBase, T>)                                                   return FieldLayout::NVARCHAR;
-            else if constexpr (is_any_of_v<T, std::string, std::u8string, std::string_view, std::u8string_view>) return FieldLayout::NVARCHAR;
+            else if constexpr (is_any_of_v<T, std::string, std::wstring, std::string_view, std::wstring_view>)   return FieldLayout::NVARCHAR;
 
             else static_assert(always_false_v<T>, "Unknown layout type!");
         }
@@ -79,7 +79,7 @@ namespace IMDBParser {
             if constexpr (is_template_instantiation_v<T, std::optional>) 
                 return &addressor_optional<T, offset, get_addressor_fn<typename T::value_type, offset>()>;
             
-            else if constexpr (is_any_of_v<T, std::string, std::u8string, std::string_view, std::u8string_view>) 
+            else if constexpr (is_any_of_v<T, std::string, std::wstring, std::string_view, std::wstring_view>)
                 return &addressor_heap<T, offset>;
 
             else if constexpr (std::is_base_of_v<EnumBase, T>) 

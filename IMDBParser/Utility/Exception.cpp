@@ -8,11 +8,11 @@
 
 
 namespace IMDBParser {
-    void raise_exception(std::string_view message) {
-        std::cout << "ERROR: " << message << '\n';
+    void raise_exception(std::wstring_view message) {
+        std::wcout << "ERROR: " << message << '\n';
 
-        if (IMDBParser::ParseController::instance().has_argument("--pause-except")) {
-            std::cout << "'Press X to exit the program, or any other key to continue execution... (or run without --pause-except to automatically continue.)\n";
+        if (IMDBParser::ParseController::instance().has_argument(L"--pause-except")) {
+            std::wcout << "'Press X to exit the program, or any other key to continue execution... (or run without --pause-except to automatically continue.)\n";
 
             char c = (char) std::getchar();
             if (std::tolower(c) == 'x') std::exit(-1);
@@ -20,11 +20,11 @@ namespace IMDBParser {
     }
 
 
-    void raise_warning(std::string_view message) {
-        std::cout << "WARNING: " << message << '\n';
+    void raise_warning(std::wstring_view message) {
+        std::wcout << "WARNING: " << message << '\n';
 
-        if (IMDBParser::ParseController::instance().has_argument("--pause-warning")) {
-            std::cout << "'Press any key to continue... (or run without --pause-warning to automatically continue.)\n";
+        if (IMDBParser::ParseController::instance().has_argument(L"--pause-warning")) {
+            std::wcout << "'Press any key to continue... (or run without --pause-warning to automatically continue.)\n";
             std::getchar();
         }
     }

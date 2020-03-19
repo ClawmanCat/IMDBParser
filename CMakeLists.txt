@@ -88,9 +88,10 @@ if (EXISTS ${PARSER_DATASRC})
 endif()
 
 
-add_compile_definitions(PARSER_DATASOURCE_DIR="${PARSER_DATADST}")
-add_compile_definitions(PARSER_CSV_DIR="${CMAKE_CURRENT_SOURCE_DIR}/csv")
+add_compile_definitions(PARSER_DATASOURCE_DIR=L"${PARSER_DATADST}")
+add_compile_definitions(PARSER_CSV_DIR=L"${CMAKE_CURRENT_SOURCE_DIR}/csv")
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

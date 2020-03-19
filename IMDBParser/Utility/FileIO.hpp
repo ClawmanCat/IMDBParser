@@ -21,69 +21,69 @@ namespace IMDBParser::FileIO {
 
 
     namespace Detail {
-        inline void raise_io_exception(std::string_view path, bool read) {
-            raise_exception(join_variadic("",
-                "Failed to ",
-                (read ? "read from" : "write to"),
-                " file ",
+        inline void raise_io_exception(std::wstring_view path, bool read) {
+            raise_exception(join_variadic(L"",
+                L"Failed to ",
+                (read ? L"read from" : L"write to"),
+                L" file ",
                 path,
-                ": ",
-                strerror(errno)
+                L": ",
+                to_wstring(strerror(errno))
             ));
         }
     }
 
 
-    inline std::vector<std::string> read(std::string_view path) {
-        std::ifstream stream(path.data());
+    inline std::vector<std::wstring> read(std::wstring_view path) {
+        std::ifstream stream(to_nstring(path));
         if (!stream.good()) {
             Detail::raise_io_exception(path, true);
             return {};
         }
 
-        std::vector<std::string> result;
+        std::vector<std::wstring> result;
         std::string tmp;
 
-        while (std::getline(stream, tmp)) result.push_back(tmp);
+        while (std::getline(stream, tmp)) result.push_back(to_wstring(tmp));
 
         return result;
     }
 
 
     template <typename String>
-    inline void write(std::string_view path, const std::vector<String>& text) {
-        fs::path dir = fs::path(path).parent_path();
+    inline void write(std::wstring_view path, const std::vector<String>& text) {
+        fs::path dir = fs::path(to_nstring(path)).parent_path();
         if (!fs::is_directory(dir)) fs::create_directories(dir);
 
-        std::ofstream stream(path.data());
+        std::ofstream stream(to_nstring(path));
         if (!stream.good()) {
             Detail::raise_io_exception(path, false);
             return;
         }
 
-        for (const auto& line : text) stream << line << '\n';
+        for (const auto& line : text) stream << to_nstring(line) << '\n';
     }
 
 
     template <typename Model>
-    inline void write_csv(std::string_view path, const std::vector<Model>& data) {
-        constexpr std::string_view seperator = ";";
+    inline void write_csv(std::wstring_view path, const std::vector<Model>& data) {
+        constexpr std::wstring_view seperator = L";";
 
 
         const std::vector<FieldLayout> layout = Model::GetLayout();
 
-        std::vector<std::string> result;
+        std::vector<std::wstring> result;
 
 
-        std::string header;
-        for (const auto& field : layout) header.append(join_variadic("", field.name, seperator));
+        std::wstring header;
+        for (const auto& field : layout) header.append(join_variadic(L"", to_wstring(field.name), seperator));
         header.pop_back();  // Trailing comma
 
         result.push_back(header);
 
 
         for (const auto& obj : data) {
-            std::stringstream row;
+            std::wstringstream row;
 
             for (const auto& field : layout) {
                 const void* address = field.addressor_fn(&obj);
@@ -110,7 +110,7 @@ namespace IMDBParser::FileIO {
                 }
             }
 
-            std::string s = row.str();
+            std::wstring s = row.str();
             s.pop_back();  // Trailing comma
 
             result.push_back(std::move(s));
@@ -121,10 +121,10 @@ namespace IMDBParser::FileIO {
     }
 
 
-    inline std::string_view stem(std::string_view path) {
-        auto pos = path.rfind('.');
+    inline std::wstring_view stem(std::wstring_view path) {
+        auto pos = path.rfind(L'.');
 
-        if (pos != std::string_view::npos) path.remove_suffix(path.size() - pos);
+        if (pos != std::wstring_view::npos) path.remove_suffix(path.size() - pos);
 
         return path;
     }

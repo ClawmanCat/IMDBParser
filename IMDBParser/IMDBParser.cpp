@@ -5,5 +5,5 @@
 
 
 int main(int argc, char** argv) {
-    IMDBParser::ParseController::instance().controller_main(std::vector<std::string>(argv, argv + argc));
+    IMDBParser::ParseController::instance().controller_main(IMDBParser::all_to_wstring(std::vector<std::string>(argv, argv + argc)));
 }
