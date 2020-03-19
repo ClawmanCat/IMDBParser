@@ -69,7 +69,7 @@ namespace IMDBParser {
             }
 
 
-            if (contains_any(actor.name, "~`!@#$%^&*_+=[]{}\\|'\";:,<>/?0123456789")) 
+            if (contains_any(actor.name, "~`!@#$%^&*_+=[]{}\\|'\";:,<>/?0123456789")) {}
                 //raise_anomaly("Unexpected characters found in actor name. Column might be parsed incorrectly!", false);
 
 
@@ -146,7 +146,6 @@ namespace IMDBParser {
 
                 std::get<std::vector<ModelActorAppearance>>(result).push_back(appearance);
             }
-
 
             return result;
         }
