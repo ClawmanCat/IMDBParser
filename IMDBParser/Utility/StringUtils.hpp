@@ -23,13 +23,23 @@ namespace IMDBParser {
 
     inline std::wstring to_wstring(std::string_view source) {
         if (source.length() == 0) return L"";
-        return Detail::converter.from_bytes(&*source.begin(), (&*source.begin()) + source.length());
+
+        try {
+            return Detail::converter.from_bytes(&*source.begin(), (&*source.begin()) + source.length());
+        } catch (...) {
+            return L"";
+        }
     }
 
 
     inline std::string to_nstring(std::wstring_view source) {
         if (source.length() == 0) return "";
-        return Detail::converter.to_bytes(&*source.begin(), (&*source.begin()) + source.length());
+
+        try {
+            return Detail::converter.to_bytes(&*source.begin(), (&*source.begin()) + source.length());
+        } catch (...) {
+            return "";
+        }
     }
 
 
