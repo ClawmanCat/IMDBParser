@@ -5,10 +5,17 @@
 #include <iostream>
 #include <cstdio>
 #include <cctype>
+#include <mutex>
 
 
 namespace IMDBParser {
+    std::mutex iostream_mtx = {};
+
+
     void raise_exception(std::wstring_view message) {
+        std::lock_guard lock{ iostream_mtx };
+
+
         std::wcout << "ERROR: " << message << '\n';
 
         if (IMDBParser::ParseController::instance().has_argument(L"--pause-except")) {
@@ -21,6 +28,9 @@ namespace IMDBParser {
 
 
     void raise_warning(std::wstring_view message) {
+        std::lock_guard lock{ iostream_mtx };
+
+
         std::wcout << "WARNING: " << message << '\n';
 
         if (IMDBParser::ParseController::instance().has_argument(L"--pause-warning")) {

@@ -33,7 +33,7 @@ namespace IMDBParser {
         //
         // TODO: Add command line flag to automatically remove questionable entries.
         // TODO: Support unicode.
-        template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view column, unsigned& warn_count, unsigned& err_count) {
+        template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view column, std::atomic_uint& warn_count, std::atomic_uint& err_count) {
             ActorParserResult result;
 
             auto raise_anomaly = [&](std::string_view message, bool except = true) {
