@@ -14,7 +14,7 @@
 #define PARSER_GEN_FIELD_LAYOUT(Class, Field)                                               \
 FieldLayout {                                                                               \
     #Field,                                                                                 \
-    sizeof(decltype(Class::Field)),                                                         \
+    IMDBParser::Detail::get_layout_size<decltype(Class::Field)>(),                          \
     IMDBParser::Detail::get_addressor_fn<decltype(Class::Field), offsetof(Class, Field)>(), \
     IMDBParser::Detail::get_layout_type<decltype(Class::Field)>()                           \
 }
@@ -37,6 +37,14 @@ namespace IMDBParser {
 
 
     namespace Detail {
+        template <typename T> constexpr inline std::size_t get_layout_size(void) {
+            if constexpr (is_template_instantiation_v<T, std::optional>) return sizeof(typename T::value_type);
+            else return sizeof(T);
+        }
+
+
+
+
         template <typename T> constexpr inline FieldLayout::Type get_layout_type(void) {
             if constexpr (is_template_instantiation_v<T, std::optional>) return get_layout_type<typename T::value_type>();
 
@@ -48,6 +56,8 @@ namespace IMDBParser {
 
             else static_assert(always_false_v<T>, "Unknown layout type!");
         }
+
+
 
 
         template <typename T, std::size_t offset> constexpr inline const void* addressor_pod(const void* obj) {

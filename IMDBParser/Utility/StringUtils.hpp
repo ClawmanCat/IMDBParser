@@ -23,13 +23,13 @@ namespace IMDBParser {
 
     inline std::wstring to_wstring(std::string_view source) {
         if (source.length() == 0) return L"";
-        return Detail::converter.from_bytes(&*source.begin());
+        return Detail::converter.from_bytes(&*source.begin(), (&*source.begin()) + source.length());
     }
 
 
     inline std::string to_nstring(std::wstring_view source) {
         if (source.length() == 0) return "";
-        return Detail::converter.to_bytes(&*source.begin());
+        return Detail::converter.to_bytes(&*source.begin(), (&*source.begin()) + source.length());
     }
 
 
@@ -208,12 +208,12 @@ namespace IMDBParser {
 
 
     namespace Detail {
-        template <typename T> inline std::wstring_view typename_string_impl(std::wstring_view source, std::size_t begin, std::size_t end, bool remove_namespace) {
+        template <typename T> inline std::string_view typename_string_impl(std::string_view source, std::size_t begin, std::size_t end, bool remove_namespace) {
             source.remove_prefix(begin);
             source.remove_suffix(end);
 
             if (remove_namespace) {
-                auto where = source.rfind(L"::");
+                auto where = source.rfind("::");
                 source.remove_prefix(where + 2);
             }
 
@@ -222,13 +222,13 @@ namespace IMDBParser {
     }
 
 
-    template <typename T> inline std::wstring_view typename_string(bool remove_namespace = false) {
+    template <typename T> inline std::wstring typename_string(bool remove_namespace = false) {
         #ifdef _MSC_VER
-            return Detail::typename_string_impl<T>(to_wstring(__FUNCSIG__), 64, 1, remove_namespace);
+            return to_wstring(Detail::typename_string_impl<T>(__FUNCSIG__, 60, 1, remove_namespace));
         #elif defined __clang__
-            return Detail::typename_string_impl<T>(to_wstring(__PRETTY_FUNCTION__), 56, 1, remove_namespace);
+            return to_wstring(Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 56, 1, remove_namespace));
         #elif defined __GNUC__
-            return Detail::typename_string_impl<T>(to_wstring(__PRETTY_FUNCTION__), 61, 50, remove_namespace);
+            return to_wstring(Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 61, 50, remove_namespace));
         #else
             #error "Unknown Compiler! Don't know how to get typename string."
         #endif
