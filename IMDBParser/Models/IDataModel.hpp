@@ -1,10 +1,13 @@
 #pragma once
 
+#include "FieldLayout.hpp"
+
+#include <vector>
+
 namespace IMDBParser {
-    template <typename Derived>
-    class IDataModel {
+    template <typename Derived> class IDataModel {
     public:
-        constexpr static auto GetLayout(void) {
+        static std::vector<FieldLayout> GetLayout(void) {
             return Derived::GetLayout();
         }
     protected:

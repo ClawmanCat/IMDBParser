@@ -1,0 +1,6 @@
+[requires]
+boost/1.71.0
+re2/20200301
+
+[generators]
+cmake

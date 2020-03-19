@@ -3,6 +3,33 @@
 project ("IMDBParser")
 
 
+# Setup Conan Dependencies
+if (WIN32)
+     # Conan does not work with compilers other than MSVC on Windows.
+     set(PREV_CMAKE_C_COMPILER ${CMAKE_C_COMPILER})
+     set(PREV_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+
+     set(CMAKE_C_COMPILER MSVC)
+     set(CMAKE_CXX_COMPILER MSVC)
+
+     set(CONAN_DISABLE_CHECK_COMPILER TRUE)
+endif()
+
+
+include(FindPythonInterp)
+execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/run_conan.py)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/${CMAKE_BUILD_TYPE}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+
+if (WIN32)
+     set(CMAKE_C_COMPILER ${PREV_CMAKE_C_COMPILER})
+     set(CMAKE_CXX_COMPILER ${PREV_CMAKE_CXX_COMPILER})
+endif()
+
+
+
 set(PARSER_DATASRC ${CMAKE_CURRENT_SOURCE_DIR}/data/compressed/)
 set(PARSER_DATADST ${CMAKE_CURRENT_SOURCE_DIR}/data/decompressed/)
 
@@ -43,7 +70,7 @@ if (EXISTS ${PARSER_DATASRC})
           file(MAKE_DIRECTORY ${PARSER_DATADST})
      endif()
 
-     file(GLOB_RECURSE packed_data CONFIGURE_DEPENDS LIST_DIRECTORIES false "${PARSER_DATASRC}" "*.gz")
+     file(GLOB_RECURSE packed_data CONFIGURE_DEPENDS LIST_DIRECTORIES false "${PARSER_DATASRC}/*.gz")
 
      foreach (srcpath ${packed_data})
           get_filename_component(srcfile ${srcpath} NAME_WLE)
@@ -61,7 +88,14 @@ if (EXISTS ${PARSER_DATASRC})
 endif()
 
 
-set(CMAKE_CXX_STANDARD 17)
+add_compile_definitions(PARSER_DATASOURCE_DIR=L"${PARSER_DATADST}")
+add_compile_definitions(PARSER_CSV_DIR=L"${CMAKE_CURRENT_SOURCE_DIR}/csv")
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_subdirectory ("IMDBParser")
+add_subdirectory("IMDBParser")

@@ -1,6 +1,9 @@
-﻿#include <vector>
+﻿#include "ParseController.hpp"
+
+#include <vector>
 #include <string>
 
+
 int main(int argc, char** argv) {
-    std::vector<std::string> args { argv, argv + argc };
+    IMDBParser::ParseController::instance().controller_main(IMDBParser::all_to_wstring(std::vector<std::string>(argv, argv + argc)));
 }

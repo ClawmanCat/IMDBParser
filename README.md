@@ -4,6 +4,9 @@ CMake will automatically download compressed versions of the archives to the `./
 To add a new archive, provide a file name and a download URL in designated section of the root `CMakeLists.txt` file.
 It is possible to manually add files to the `./data/compressed/` and `./data/decompressed/` folders as well.
 
+Additionally, to actually parse the data, a parsing method must be set in `ParseController.hpp`.
+
+
 ### Requirements
-The C++ parser requires C++17 or later to run. CMake is required to build the project.
+The C++ parser requires C++20 to compile. CMake is required to build the project.
 Additionally, GZip is required for automatic extraction of the source archives. ([Windows](http://gnuwin32.sourceforge.net/packages/gzip.htm), [Linux](https://ftp.gnu.org/gnu/gzip/))
