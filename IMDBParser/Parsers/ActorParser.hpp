@@ -50,12 +50,12 @@ namespace IMDBParser {
             };
 
 
-            auto name_appearance_split = split(column, std::regex("(\r?\n)?\t+"));
-            if (name_appearance_split.size() != 2) { raise_anomaly("Column does not contain name/movie[] pair.", true); return {}; }
+            auto name_appearance_split = split_on_first_recurring(column, '\t');
+            if (name_appearance_split == std::nullopt) { raise_anomaly("Column does not contain name/movie[] pair.", true); return {}; }
 
 
             // Parse Actor Name
-            auto actor_details = capture_groups(name_appearance_split[0], std::regex(R"REGEX((?:['"]\s*(.+)\s*['"],\s+)?(.+))REGEX"));
+            auto actor_details = capture_groups(name_appearance_split.value()[0], std::regex(R"REGEX((?:['"]\s*(.+)\s*['"],\s+)?(.+))REGEX"));
             if (actor_details.size() < 1) { raise_anomaly("Column does not contain a valid actor name.", true); return {}; }
 
             ModelActor actor;
@@ -70,10 +70,10 @@ namespace IMDBParser {
 
 
             if (contains_any(actor.name, "~`!@#$%^&*_+=[]{}\\|'\";:,<>/?0123456789")) 
-                raise_anomaly("Unexpected characters found in actor name. Column might be parsed incorrectly!", false);
+                //raise_anomaly("Unexpected characters found in actor name. Column might be parsed incorrectly!", false);
 
 
-            if (actor.name.find(',') != std::string::npos) {
+            if (auto pos = actor.name.find(','); pos != std::string::npos && pos != 0) {
                 // lastname, firstname
                 auto split_name = capture_groups(actor.name, std::regex("(\\S+),\\s+(\\S+)"));
 
@@ -87,7 +87,7 @@ namespace IMDBParser {
 
 
             // Parse Actor Appearances
-            for (const auto& line : split(name_appearance_split[1], std::regex("\r?\n"))) {
+            for (const auto& line : split(name_appearance_split.value()[1], std::regex("\r?\n"))) {
                 auto appearance_details = capture_groups(
                     line, 
                     std::regex(R"REGEX(\s*(.+)\s+\((\d\d\d\d)(?:\/([IVXLCDM]+))?\)\s*(?:\((TV|V)\)\s*)?(?:(\{.+\})\s*)?(?:\((?:(uncredited)|(?:as\s+(.+)))\)\s*)?(?:(\[.+\])\s*)?(?:(\<\d+\>))?)REGEX")
@@ -155,7 +155,7 @@ namespace IMDBParser {
 
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActorParser {
         &Detail::actor_parser_fn<true>,
-        std::regex("\r?\n\r?\n"),
+        "\r\n\r\n",
         240,
         20152625
     };
@@ -163,7 +163,7 @@ namespace IMDBParser {
 
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActressParser {
         &Detail::actor_parser_fn<false>,
-        std::regex("\r?\n\r?\n"),
+        "\r\n\r\n",
         242,
         12099756
     };
@@ -172,7 +172,7 @@ namespace IMDBParser {
     // For testing only
     inline typename Detail::ActorParserModels::template Apply<AsDataParser> ActressTestParser {
         &Detail::actor_parser_fn<false>,
-        std::regex("\r?\n\r?\n"),
+        "\r\n\r\n",
         0,
         9695
     };

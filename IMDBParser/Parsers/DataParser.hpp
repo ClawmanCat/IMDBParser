@@ -35,7 +35,7 @@ namespace IMDBParser {
             std::string cat;
             cat.reserve((end - begin) * 75);
 
-            for (unsigned i = begin; i < end; ++i) cat.append(join_variadic("", data[i], "\n"));
+            for (unsigned i = begin; i < end; ++i) cat.append(join_variadic("", data[i], "\r\n"));
 
 
             std::vector<std::string_view> split_view;

@@ -11,6 +11,7 @@
 #include <array>
 #include <tuple>
 #include <cassert>
+#include <optional>
 
 
 namespace IMDBParser {
@@ -177,14 +178,29 @@ namespace IMDBParser {
 
 
     template <typename T> inline std::string_view typename_string(bool remove_namespace = false) {
-    #ifdef _MSC_VER
-        return Detail::typename_string_impl<T>(__FUNCSIG__, 64, 1, remove_namespace);
-    #elif defined __clang__
-        return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 56, 1, remove_namespace);
-    #elif defined __GNUC__
-        return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 61, 50, remove_namespace);
-    #else
-        #error "Unknown Compiler! Don't know how to get typename string."
-    #endif
+        #ifdef _MSC_VER
+            return Detail::typename_string_impl<T>(__FUNCSIG__, 64, 1, remove_namespace);
+        #elif defined __clang__
+            return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 56, 1, remove_namespace);
+        #elif defined __GNUC__
+            return Detail::typename_string_impl<T>(__PRETTY_FUNCTION__, 61, 50, remove_namespace);
+        #else
+            #error "Unknown Compiler! Don't know how to get typename string."
+        #endif
+    }
+
+
+    inline std::optional<std::array<std::string_view, 2>> split_on_first_recurring(std::string_view source, char seperator) {
+        auto begin = source.find(seperator);
+        if (begin == 0 || begin == std::string_view::npos) return std::nullopt;
+
+        auto end = begin;
+        while (source.length() > end + 1 && source[end] == seperator) ++end;
+        if (end == begin || source[end] == seperator) return std::nullopt;
+
+        return std::array {
+            std::string_view(&*source.begin(), begin),
+            std::string_view(&*source.begin() + end, source.length() - end)
+        };
     }
 }
