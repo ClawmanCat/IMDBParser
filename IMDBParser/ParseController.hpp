@@ -5,6 +5,8 @@
 #include <IMDBParser/Utility/TupleUtils.hpp>
 #include <IMDBParser/Parsers/ActorParser.hpp>
 
+#include <boost/preprocessor.hpp>
+
 #include <array>
 #include <tuple>
 #include <vector>
@@ -20,8 +22,8 @@ namespace IMDBParser {
     class ParseController {
     public:
         // Provided by CMake
-        constexpr static inline std::wstring_view DATA_FOLDER = PARSER_DATASOURCE_DIR;
-        constexpr static inline std::wstring_view CSV_FOLDER  = PARSER_CSV_DIR;
+        constexpr static inline std::wstring_view DATA_FOLDER = BOOST_PP_WSTRINGIZE(PARSER_DATASOURCE_DIR);
+        constexpr static inline std::wstring_view CSV_FOLDER  = BOOST_PP_WSTRINGIZE(PARSER_CSV_DIR);
 
 
         static ParseController& instance(void) {
@@ -31,7 +33,6 @@ namespace IMDBParser {
 
 
         const static inline std::tuple list_parsers = std::make_tuple(
-            std::tuple { std::wstring_view(L"actresses_test.list"), ActressTestParser }
             //std::tuple { L"actresses.list", ActressParser },
             //std::tuple { L"actors.list",    ActorParser   }
         );
