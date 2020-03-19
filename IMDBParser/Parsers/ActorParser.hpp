@@ -57,7 +57,7 @@ namespace IMDBParser {
 
 
             // Parse Actor Name
-            auto actor_details = capture_groups(name_appearance_split.value()[0], std::wregex(LR"REGEX((?:['"]\s*(.+)\s*['"],\s+)?(.+))REGEX"));
+            auto actor_details = capture_groups(name_appearance_split.value()[0], std::wregex(LR"REGEX((?:['\"]\s*(.+)['\"][.,]?\s*)?(?:(.+)))REGEX"));
             if (actor_details.size() < 1) { raise_anomaly("Column does not contain a valid actor name.", true); return {}; }
 
             ModelActor actor;
