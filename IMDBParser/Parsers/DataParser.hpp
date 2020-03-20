@@ -4,6 +4,7 @@
 #include <IMDBParser/Utility/StringUtils.hpp>
 #include <IMDBParser/Utility/TupleUtils.hpp>
 #include <IMDBParser/Utility/ThreadUtils.hpp>
+#include <IMDBParser/Utility/SilentCounter.hpp>
 
 #include <string>
 #include <string_view>
@@ -11,6 +12,26 @@
 #include <variant>
 #include <tuple>
 #include <atomic>
+
+
+
+// TODO: Refactor this into a normal method. (Would require replacing capture with parameters everywhere, maybe use std::bind?)
+#define IMDBPARSER_ANOMALY_HANDLER(Name)                                                    \
+auto Name = [&](std::string_view message, bool except = true) {                             \
+    auto fn = except ? &raise_exception : &raise_warning;                                   \
+                                                                                            \
+    fn(join_variadic(L"",                                                                   \
+        except ? L"Failed to parse row" : L"Warning while parsing row",                     \
+        L" \"",                                                                             \
+        row,                                                                                \
+        L"\": ",                                                                            \
+        to_wstring(message),                                                                \
+        except ? L" (Row will be skipped.)" : L""                                           \
+        ));                                                                                 \
+                                                                                            \
+    except ? ++err_count : ++warn_count;                                                    \
+}
+
 
 
 namespace IMDBParser {
@@ -23,13 +44,13 @@ namespace IMDBParser {
     template <typename... Models> class DataParser {
     public:
         using ParseResult  = AsParseResult<Models...>;
-        using ColumnParser = Fn<ParseResult, std::wstring_view, std::atomic_uint&, std::atomic_uint&>;  // column data, warning_count, error_count
+        using RowParser = Fn<ParseResult, std::wstring_view, std::atomic_uint&, std::atomic_uint&>;  // Row data, warning_count, error_count
 
 
-        DataParser(ColumnParser&& parsefn, std::wstring&& seperator, std::size_t begin, std::size_t end) 
+        DataParser(RowParser&& parsefn, std::wstring&& seperator, std::size_t begin, std::size_t end) 
             : parser(std::move(parsefn)), seperator(std::move(seperator)), begin(begin), end(end) {}
 
-        DataParser(ColumnParser&& parsefn, std::wregex&& seperator, std::size_t begin, std::size_t end)
+        DataParser(RowParser&& parsefn, std::wregex&& seperator, std::size_t begin, std::size_t end)
             : parser(std::move(parsefn)), seperator(std::move(seperator)), begin(begin), end(end) {}
 
 
@@ -53,9 +74,14 @@ namespace IMDBParser {
             std::vector<std::wstring_view> split_view;
             std::visit([&](const auto& s) { split_view = split(cat, s); }, seperator);
 
+            SilentCounter counter { warn_count, err_count };
             ParseResult result = parallel_map_serial_combine(
                 split_view, 
-                [&](std::wstring_view view) { return parser(view, warn_count, err_count); },
+                [&](std::wstring_view view) { 
+                    counter.increment();
+                    return parser(view, warn_count, err_count); 
+                },
+
                 [&](std::vector<ParseResult>&& subresults) { return merge_vector_tuples(std::move(subresults)); }
             );
 
@@ -65,7 +91,7 @@ namespace IMDBParser {
             return result;
         }
     private:
-        ColumnParser parser;
+        RowParser parser;
         std::variant<std::wstring, std::wregex> seperator;
         std::size_t begin, end;
     };

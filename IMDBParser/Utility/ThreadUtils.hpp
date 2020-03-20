@@ -5,6 +5,7 @@
 #include <vector>
 #include <type_traits>
 #include <optional>
+#include <iostream>
 
 
 namespace IMDBParser {
@@ -34,6 +35,7 @@ namespace IMDBParser {
         std::vector<result> finished_results;
         finished_results.reserve(results.size());
 
+        // TODO: This transform could be removed if we used a raw byte buffer instead of an object container.
         std::transform(
             std::make_move_iterator(results.begin()), 
             std::make_move_iterator(results.end()), 
@@ -41,6 +43,7 @@ namespace IMDBParser {
             [](auto&& result) { return std::move(result.value()); }
         );
 
+        // TODO: Multithread this.
         return reduce(std::move(finished_results));
     }
 }

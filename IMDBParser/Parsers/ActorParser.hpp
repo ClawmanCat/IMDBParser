@@ -21,7 +21,7 @@ namespace IMDBParser {
         // 
         // ... where 'nickname' matches the pattern ['"]\s*(nickname = .+)\s*['"],\s+
         //
-        // ... where fullname usually is one of 'firstname lastname' or 'lastname, firstname' but this can't be matched because the list contains a lot of 
+        // ... where fullname usually is one of 'firstname lastname' or 'lastname, firstname' but this can't always be matched because the list contains a lot of 
         // irregular bullshit. ($haniqua the rabbit, '67 Chevrolet Impala, etc.)
         // 
         // ... where medianame matches one of the following:
@@ -32,41 +32,17 @@ namespace IMDBParser {
         // ... where target is either (TV) or (V). (Made for TV and made for video respectively.)
         //
         // TODO: Add command line flag to automatically remove questionable entries.
-        // TODO: Support unicode.
-        template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view column, std::atomic_uint& warn_count, std::atomic_uint& err_count) {
-            if (ParseController::instance().has_argument(L"--silence-all")) {
-                static std::atomic_uint count = 0;
-
-                if (unsigned v = ++count; v % 100'000 == 0) 
-                    std::wcout << "Still working... (" << v << " rows parsed, " << warn_count << " warnings, " << err_count << " errors.)\n";
-            }
-
-
+        template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view row, std::atomic_uint& warn_count, std::atomic_uint& err_count) {
+            IMDBPARSER_ANOMALY_HANDLER(raise_anomaly);
             ActorParserResult result;
 
-            auto raise_anomaly = [&](std::string_view message, bool except = true) {
-                auto fn = except ? &raise_exception : &raise_warning;
-
-                fn(join_variadic(L"",
-                    except ? L"Failed to parse column" : L"Warning while parsing column",
-                    L" \"",
-                    column,
-                    L"\": ",
-                    to_wstring(message),
-                    except ? L" (Column will be skipped.)" : L""
-                ));
-
-                except ? ++err_count : ++warn_count;
-            };
-
-
-            auto name_appearance_split = split_on_first_recurring(column, L'\t');
-            if (name_appearance_split == std::nullopt) { raise_anomaly("Column does not contain name/movie[] pair.", true); return {}; }
+            auto name_appearance_split = split_on_first_recurring(row, L'\t');
+            if (name_appearance_split == std::nullopt) { raise_anomaly("Row does not contain name/movie[] pair.", true); return {}; }
 
 
             // Parse Actor Name
             auto actor_details = capture_groups(name_appearance_split.value()[0], std::wregex(LR"REGEX((?:['\"]\s*(.+)['\"][.,]?\s*)?(?:(.+)))REGEX"));
-            if (actor_details.size() < 1) { raise_anomaly("Column does not contain a valid actor name.", true); return {}; }
+            if (actor_details.size() < 1) { raise_anomaly("Row does not contain a valid actor name.", true); return {}; }
 
             ModelActor actor;
             actor.is_male = Male;
@@ -136,7 +112,7 @@ namespace IMDBParser {
                 } else appearance.release_type = ModelActorAppearance::ReleaseType::CINEMA;
 
                 if (has_next() && is_surrounded_with(get_next(), L'{', L'}')) {
-                    appearance.scene = desurround(get_next());
+                    appearance.episode = desurround(get_next());
                     ++fieldcount;
                 }
 

@@ -31,7 +31,7 @@ namespace IMDBParser {
         std::wstring actor;                                          // ModelActor::name
         std::wstring appeared_in;                                    // The movie in question
         std::wstring role;                                           // May be null
-        std::wstring scene;                                          // May be null
+        std::wstring episode;                                        // May be null
         std::wstring credited_as;                                    // May be null
         std::optional<unsigned> billing_position = std::nullopt;     // May be null
         std::optional<unsigned> release_yr = std::nullopt;
@@ -47,7 +47,7 @@ namespace IMDBParser {
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, actor),
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, appeared_in),
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, role),
-                PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, scene),
+                PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, episode),
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, credited_as),
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, billing_position),
                 PARSER_GEN_FIELD_LAYOUT(ModelActorAppearance, release_yr),
