@@ -14,26 +14,6 @@
 #include <atomic>
 
 
-
-// TODO: Refactor this into a normal method. (Would require replacing capture with parameters everywhere, maybe use std::bind?)
-#define IMDBPARSER_ANOMALY_HANDLER(Name)                                                    \
-auto Name = [&](std::string_view message, bool except = true) {                             \
-    auto fn = except ? &raise_exception : &raise_warning;                                   \
-                                                                                            \
-    fn(join_variadic(L"",                                                                   \
-        except ? L"Failed to parse row" : L"Warning while parsing row",                     \
-        L" \"",                                                                             \
-        row,                                                                                \
-        L"\": ",                                                                            \
-        to_wstring(message),                                                                \
-        except ? L" (Row will be skipped.)" : L""                                           \
-        ));                                                                                 \
-                                                                                            \
-    except ? ++err_count : ++warn_count;                                                    \
-}
-
-
-
 namespace IMDBParser {
     template <typename... Models> class DataParser;
 

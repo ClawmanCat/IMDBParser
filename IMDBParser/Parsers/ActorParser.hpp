@@ -5,6 +5,7 @@
 #include <IMDBParser/Utility/Traits.hpp>
 #include <IMDBParser/Utility/StringUtils.hpp>
 #include <IMDBParser/Utility/Exception.hpp>
+#include <IMDBParser/Utility/ParserUtils.hpp>
 
 #include <string_view>
 #include <regex>
@@ -69,6 +70,7 @@ namespace IMDBParser {
 
 
             // Parse Actor Appearances
+            // TODO: Refactor to use movie_parser_common_section
             for (const auto& line : split(name_appearance_split.value()[1], std::wregex(L"\r?\n"))) {
                 auto appearance_details = capture_groups(
                     line, 
@@ -83,13 +85,6 @@ namespace IMDBParser {
                 appearance.appeared_in = capture_groups(appearance_details[0], std::wregex(L"\\\"?([^\\\"]+)\\\"?"))[0];
                 appearance.release_yr  = (appearance_details[1] == L"????") ? std::nullopt : (std::optional<unsigned>) std::stoi(std::wstring(appearance_details[1]));
 
-                appearance.media_type = partial_matches(appearance_details[0], std::wregex(LR"REGEX(\".+\"\s+\(mini\))REGEX")) 
-                    ? ModelActorAppearance::MediaType::MINI_TV_SERIES
-                    : partial_matches(appearance_details[1], std::wregex(LR"REGEX(\".+\"\s*)REGEX"))
-                        ? ModelActorAppearance::MediaType::TV_SERIES
-                        : ModelActorAppearance::MediaType::MOVIE;
-
-
                 
                 // Optional Fields
                 unsigned fieldcount = 2;
@@ -101,15 +96,18 @@ namespace IMDBParser {
                     ++fieldcount;
                 }
 
-                if (has_next() && (matches_any(get_next(), L"TV", L"V", L"VG"))) {
-                    appearance.release_type = (get_next() == L"TV") 
-                        ? ModelActorAppearance::ReleaseType::TV 
-                        : (get_next() == L"VG")
-                            ? ModelActorAppearance::ReleaseType::VIDEO_GAME
-                            : ModelActorAppearance::ReleaseType::VIDEO;
 
-                    ++fieldcount;
-                } else appearance.release_type = ModelActorAppearance::ReleaseType::CINEMA;
+                if (is_surrounded_with(appearance_details[0], L'"', L'"')) appearance.media_type = ModelActorAppearance::MediaType::TV_SERIES;
+                else appearance.media_type = ModelActorAppearance::MediaType::MOVIE;
+
+                if (partial_matches(appearance_details[0], std::wregex(LR"REGEX(\".+\"\s+\(mini\))REGEX"))) {
+                    appearance.media_type = ModelActorAppearance::MediaType::MINI_TV_SERIES;
+                    appearance.release_type = ModelActorAppearance::ReleaseType::TV;
+                } else {
+                    movie_parser_release_info(appearance, get_next());
+                    if (matches_any(get_next(), L"TV", L"V", L"VG")) ++fieldcount;
+                }
+
 
                 if (has_next() && is_surrounded_with(get_next(), L'{', L'}')) {
                     appearance.episode = desurround(get_next());
