@@ -39,6 +39,13 @@ public:                                                                 \
                                                                         \
     explicit operator UType(void) const { return value; }               \
                                                                         \
+    bool operator==(const Name& o) const { return value == o.value; }   \
+    bool operator!=(const Name& o) const { return value != o.value; }   \
+    bool operator<=(const Name& o) const { return value <= o.value; }   \
+    bool operator>=(const Name& o) const { return value >= o.value; }   \
+    bool operator< (const Name& o) const { return value <  o.value; }   \
+    bool operator> (const Name& o) const { return value >  o.value; }   \
+                                                                        \
     std::wstring_view to_string(void) const {                           \
         constexpr std::wstring_view values[] = {                        \
             BOOST_PP_SEQ_ENUM(                                          \

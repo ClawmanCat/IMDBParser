@@ -12,6 +12,7 @@ namespace IMDBParser {
         std::wstring episode;
         std::optional<unsigned> release_yr, release_nr, start_yr, end_yr;
 
+        IMDBPARSER_ENUM_CLASS(MediaType, int, UNDEFINED, MOVIE, TV_SERIES, VIDEO_GAME) media_type = MediaType::UNDEFINED;
         IMDBPARSER_ENUM_CLASS(ReleaseType, int, UNDEFINED, CINEMA, TV, VIDEO) release_type = ReleaseType::UNDEFINED;
 
 
@@ -23,6 +24,7 @@ namespace IMDBParser {
                 PARSER_GEN_FIELD_LAYOUT(ModelMovie, release_nr),
                 PARSER_GEN_FIELD_LAYOUT(ModelMovie, start_yr),
                 PARSER_GEN_FIELD_LAYOUT(ModelMovie, end_yr),
+                PARSER_GEN_FIELD_LAYOUT(ModelMovie, media_type),
                 PARSER_GEN_FIELD_LAYOUT(ModelMovie, release_type)
             };
         }
