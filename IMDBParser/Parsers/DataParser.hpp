@@ -36,9 +36,16 @@ namespace IMDBParser {
         template <typename String>  // Can't use string_view here since we can't convert the container.
         ParseResult parse(const std::vector<String>& data) const {
             std::atomic_uint warn_count = 0, err_count = 0;
+            
+            std::size_t end = this->end;
+            if (end >= data.size()) {
+                std::cout << "WARNING: Set endpoint lies outside file bounds and will be reduced.\n";
+                end = data.size() - 1;
+            }
 
             std::wstring cat;
             cat.reserve((end - begin) * 75);
+
 
             for (unsigned i = begin; i < end; ++i) cat.append(join_variadic(L"", data[i], L"\r\n"));
 
@@ -53,6 +60,7 @@ namespace IMDBParser {
             );
 
             std::wcout << "Parser completed with " << warn_count << " warnings and " << err_count << " errors.\n";
+            std::wcout << "(Out of " << split_view.size() << " total entries.)\n";
 
             return result;
         }

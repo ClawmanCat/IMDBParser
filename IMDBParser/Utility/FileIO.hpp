@@ -35,16 +35,18 @@ namespace IMDBParser::FileIO {
 
 
     inline std::vector<std::wstring> read(std::wstring_view path) {
-        std::ifstream stream(to_nstring(path));
+        std::wifstream stream(to_nstring(path));
+        stream.imbue(std::locale("en-US"));
+
         if (!stream.good()) {
             Detail::raise_io_exception(path, true);
             return {};
         }
 
         std::vector<std::wstring> result;
-        std::string tmp;
+        std::wstring tmp;
 
-        while (std::getline(stream, tmp)) result.push_back(to_wstring(tmp));
+        while (std::getline(stream, tmp)) result.push_back(tmp);
 
         return result;
     }
@@ -55,7 +57,13 @@ namespace IMDBParser::FileIO {
         fs::path dir = fs::path(to_nstring(path)).parent_path();
         if (!fs::is_directory(dir)) fs::create_directories(dir);
 
+        // I don't know much about Unicode or locale, but for some reason std::wofstream doesn't work here.
+        // no locale => some Unicode chars get serialized incorrectly, some cause the stream to close.
+        // en_US locale (same as the wifstream) => the file is completely empty.
+        //
+        // If this doesn't work on your system, good luck: Unicode in C++ is completely broken.
         std::ofstream stream(to_nstring(path));
+        
         if (!stream.good()) {
             Detail::raise_io_exception(path, false);
             return;

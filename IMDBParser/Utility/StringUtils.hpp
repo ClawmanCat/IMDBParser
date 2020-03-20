@@ -24,6 +24,7 @@ namespace IMDBParser {
     inline std::wstring to_wstring(std::string_view source) {
         if (source.length() == 0) return L"";
 
+        // TODO: Find out how to fix this, it seems to be skipping all non-ASCII names.
         try {
             return Detail::converter.from_bytes(&*source.begin(), (&*source.begin()) + source.length());
         } catch (...) {

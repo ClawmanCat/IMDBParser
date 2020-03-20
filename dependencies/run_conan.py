@@ -1,3 +1,4 @@
+from distutils.dir_util import copy_tree
 import os
 import sys
 
@@ -36,6 +37,6 @@ else:
 print("Running conan for release configuration...")
 
 os.system('conan install . --profile ./release.conanprofile --install-folder "' + cwd + '/Release/" --build missing')
-
+copy_tree(cwd + '/Release', cwd + '/RelWithDebInfo/')
 
 os.chdir(oldcwd)

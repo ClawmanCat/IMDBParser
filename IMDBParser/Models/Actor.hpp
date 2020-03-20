@@ -34,10 +34,11 @@ namespace IMDBParser {
         std::wstring scene;                                          // May be null
         std::wstring credited_as;                                    // May be null
         std::optional<unsigned> billing_position = std::nullopt;     // May be null
-        unsigned release_yr = 0, release_nr = 0;                     // If multiple movies were released with the same name in the year, each one has an unique number.
+        std::optional<unsigned> release_yr = std::nullopt;
+        unsigned release_nr = 0;                                     // If multiple movies were released with the same name in the year, each one has an unique number.
         
         IMDBPARSER_ENUM_CLASS(MediaType,   int, UNDEFINED, MOVIE, TV_SERIES, MINI_TV_SERIES) media_type = MediaType::UNDEFINED;
-        IMDBPARSER_ENUM_CLASS(ReleaseType, int, UNDEFINED, CINEMA, TV, VIDEO) release_type = ReleaseType::UNDEFINED;
+        IMDBPARSER_ENUM_CLASS(ReleaseType, int, UNDEFINED, CINEMA, TV, VIDEO, VIDEO_GAME) release_type = ReleaseType::UNDEFINED;
 
 
 

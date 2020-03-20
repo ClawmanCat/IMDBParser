@@ -34,6 +34,14 @@ namespace IMDBParser {
         // TODO: Add command line flag to automatically remove questionable entries.
         // TODO: Support unicode.
         template <bool Male> inline ActorParserResult actor_parser_fn(std::wstring_view column, std::atomic_uint& warn_count, std::atomic_uint& err_count) {
+            if (ParseController::instance().has_argument(L"--silence-all")) {
+                static std::atomic_uint count = 0;
+
+                if (unsigned v = ++count; v % 100'000 == 0) 
+                    std::wcout << "Still working... (" << v << " rows parsed, " << warn_count << " warnings, " << err_count << " errors.)\n";
+            }
+
+
             ActorParserResult result;
 
             auto raise_anomaly = [&](std::string_view message, bool except = true) {
@@ -88,7 +96,7 @@ namespace IMDBParser {
             for (const auto& line : split(name_appearance_split.value()[1], std::wregex(L"\r?\n"))) {
                 auto appearance_details = capture_groups(
                     line, 
-                    std::wregex(LR"REGEX(\s*(.+)\s+\((\d\d\d\d)(?:\/([IVXLCDM]+))?\)\s*(?:\((TV|V)\)\s*)?(?:(\{.+\})\s*)?(?:\((?:(uncredited)|(?:as\s+(.+)))\)\s*)?(?:(\[.+\])\s*)?(?:(\<\d+\>))?)REGEX")
+                    std::wregex(LR"REGEX(\s*(.+)\s+\((\d\d\d\d|\?\?\?\?)(?:\/([IVXLCDM]+))?\)\s*(?:\((TV|V|VG)\)\s*)?(?:(\{.+\})\s*)?(?:\(([^\)]+)\)\s*)?(?:(\[.+\])\s*)?(?:(\<\d+\>))?)REGEX")
                 );
 
                 if (appearance_details.size() < 2) { raise_anomaly("Failed to parse actor movie listing.", true); continue; }
@@ -97,7 +105,7 @@ namespace IMDBParser {
                 ModelActorAppearance appearance;
                 appearance.actor       = actor.name;
                 appearance.appeared_in = capture_groups(appearance_details[0], std::wregex(L"\\\"?([^\\\"]+)\\\"?"))[0];
-                appearance.release_yr  = std::stoi(std::wstring(appearance_details[1]));
+                appearance.release_yr  = (appearance_details[1] == L"????") ? std::nullopt : (std::optional<unsigned>) std::stoi(std::wstring(appearance_details[1]));
 
                 appearance.media_type = partial_matches(appearance_details[0], std::wregex(LR"REGEX(\".+\"\s+\(mini\))REGEX")) 
                     ? ModelActorAppearance::MediaType::MINI_TV_SERIES
@@ -117,8 +125,13 @@ namespace IMDBParser {
                     ++fieldcount;
                 }
 
-                if (has_next() && (matches_any(get_next(), L"TV", L"V"))) {
-                    appearance.release_type = (get_next() == L"TV") ? ModelActorAppearance::ReleaseType::TV : ModelActorAppearance::ReleaseType::VIDEO;
+                if (has_next() && (matches_any(get_next(), L"TV", L"V", L"VG"))) {
+                    appearance.release_type = (get_next() == L"TV") 
+                        ? ModelActorAppearance::ReleaseType::TV 
+                        : (get_next() == L"VG")
+                            ? ModelActorAppearance::ReleaseType::VIDEO_GAME
+                            : ModelActorAppearance::ReleaseType::VIDEO;
+
                     ++fieldcount;
                 } else appearance.release_type = ModelActorAppearance::ReleaseType::CINEMA;
 
@@ -142,7 +155,7 @@ namespace IMDBParser {
                 }
 
 
-                std::get<std::vector<ModelActorAppearance>>(result).push_back(appearance);
+                std::get<std::vector<ModelActorAppearance>>(result).push_back(std::move(appearance));
             }
 
             return result;
@@ -162,7 +175,7 @@ namespace IMDBParser {
         &Detail::actor_parser_fn<false>,
         L"\r\n\r\n",
         242,
-        12099756
+        12097756
     };
 
 

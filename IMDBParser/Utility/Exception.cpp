@@ -13,12 +13,14 @@ namespace IMDBParser {
 
 
     void raise_exception(std::wstring_view message) {
+        if (ParseController::instance().has_argument(L"--silence-all")) return;
+
         std::lock_guard lock{ iostream_mtx };
 
 
         std::wcout << "ERROR: " << message << '\n';
 
-        if (IMDBParser::ParseController::instance().has_argument(L"--pause-except")) {
+        if (ParseController::instance().has_argument(L"--pause-except")) {
             std::wcout << "'Press X to exit the program, or any other key to continue execution... (or run without --pause-except to automatically continue.)\n";
 
             char c = (char) std::getchar();
@@ -28,12 +30,14 @@ namespace IMDBParser {
 
 
     void raise_warning(std::wstring_view message) {
+        if (ParseController::instance().has_argument(L"--silence-all")) return;
+
         std::lock_guard lock{ iostream_mtx };
 
 
         std::wcout << "WARNING: " << message << '\n';
 
-        if (IMDBParser::ParseController::instance().has_argument(L"--pause-warning")) {
+        if (ParseController::instance().has_argument(L"--pause-warning")) {
             std::wcout << "'Press any key to continue... (or run without --pause-warning to automatically continue.)\n";
             std::getchar();
         }

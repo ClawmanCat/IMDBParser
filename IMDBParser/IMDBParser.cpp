@@ -5,5 +5,8 @@
 
 
 int main(int argc, char** argv) {
-    IMDBParser::ParseController::instance().controller_main(IMDBParser::all_to_wstring(std::vector<std::string>(argv, argv + argc)));
+    auto v = std::vector<std::string>(argv, argv + argc);
+    v.push_back("--silence-all");
+
+    IMDBParser::ParseController::instance().controller_main(IMDBParser::all_to_wstring(v));
 }

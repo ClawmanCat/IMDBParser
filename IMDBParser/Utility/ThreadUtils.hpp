@@ -1,6 +1,6 @@
 #pragma once
 
-#include <thread>
+#include <future>
 #include <atomic>
 #include <vector>
 #include <type_traits>
@@ -14,14 +14,14 @@ namespace IMDBParser {
         using result = decltype(map(std::declval<Data&>()));
 
         std::atomic_uint tasks_done = 0;
-        std::vector<std::thread> threads;
+        std::vector<std::future<void>> futures;
 
         std::vector<std::optional<result>> results;
         results.resize(data.size(), std::nullopt);
 
 
         for (unsigned i = 0; i < limit; ++i) {
-            threads.push_back(std::thread([&]() {
+            futures.push_back(std::async(std::launch::async, [&]() {
                 for (unsigned index = tasks_done++; index < data.size(); index = tasks_done++) {
                     results[index] = map(data[index]);
                 }
@@ -29,7 +29,7 @@ namespace IMDBParser {
         }
 
 
-        for (auto& thread : threads) thread.join();
+        for (auto& future : futures) future.get();
 
         std::vector<result> finished_results;
         finished_results.reserve(results.size());
