@@ -16,3 +16,6 @@ Additionally, GZip is required for automatic extraction of the source archives. 
 `--pause-except`:   Pause the parser if an exception occurs.  
 `--pause-warn`:     Pause the parser if a warning is emitted.  
 `--silence-all`:    Don't print warnings and errors to the console, but print a status message every 100K rows.
+
+## Repo
+This source code is available online at https://github.com/ClawmanCat/IMDBParser
