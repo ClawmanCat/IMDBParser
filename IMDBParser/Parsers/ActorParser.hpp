@@ -79,7 +79,7 @@ namespace IMDBParser {
             }
 
 
-            if (auto pos = actor.name.find(','); pos != std::wstring::npos && pos != 0) {
+            if (auto pos = actor.name.find(L", "); pos != std::wstring::npos && pos != 0) {
                 // lastname, firstname
                 auto split_name = capture_groups(actor.name, std::wregex(L"(.+),\\s+(.+)"));
 
