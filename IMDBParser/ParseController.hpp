@@ -7,6 +7,7 @@
 #include <IMDBParser/Parsers/MovieParser.hpp>
 #include <IMDBParser/Parsers/LanguageParser.hpp>
 #include <IMDBParser/Parsers/RatingParser.hpp>
+#include <IMDBParser/Parsers/LocationParser.hpp>
 
 #include <boost/preprocessor.hpp>
 
@@ -40,7 +41,8 @@ namespace IMDBParser {
             // std::tuple { L"language.list",  MovieLanguageParser },
             // std::tuple { L"actresses.list", ActressParser       },
             // std::tuple { L"actors.list",    ActorParser         },
-            std::tuple { L"ratings.list", RatingParser }
+            // std::tuple { L"ratings.list",   RatingParser        },
+            std::tuple { L"locations.list", LocationParser }
         );
 
         
