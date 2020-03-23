@@ -54,25 +54,28 @@ namespace IMDBParser {
     // Many datafiles include a movie listing, the parsing is the same every time.
     // Returns the index of the first unparsed field, if any.
     template <typename Model, typename Data>
-    inline unsigned movie_parser_common_section(Model& model, const Data& data) {
-        bool surrounded  = is_surrounded_with(data[0], L'"', L'"');
-        model.title      = surrounded ? desurround(data[0]) : data[0];
+    inline unsigned movie_parser_common_section(Model& model, const Data& data, std::size_t offset = 0) {
+        bool surrounded  = is_surrounded_with(data[offset + 0], L'"', L'"');
+        model.title      = surrounded ? desurround(data[offset + 0]) : data[offset + 0];
         model.media_type = surrounded ? Model::MediaType::TV_SERIES : Model::MediaType::MOVIE;
-        model.release_yr = to_number(data[1]);
+        model.release_yr = to_number(data[offset + 1]);
 
 
-        unsigned fieldcount = 2;
+        unsigned fieldcount = offset + 2;
         auto get_next = [&]() { return data[fieldcount]; };
+        auto has_next = [&]() { return fieldcount < data.size(); };
 
-        if (is_roman_numeral(get_next())) {
+        if (has_next() && is_roman_numeral(get_next())) {
             model.release_nr = parse_roman_numeral(get_next());
             ++fieldcount;
         }
 
-        movie_parser_release_info(model, get_next());
-        if (matches_any(get_next(), L"TV", L"V", L"VG")) ++fieldcount;
+        auto next = has_next() ? get_next() : L"";
+        movie_parser_release_info(model, next);
+        if (matches_any(next, L"TV", L"V", L"VG")) ++fieldcount;
 
-        if (is_surrounded_with(get_next(), L'{', L'}')) {
+
+        if (has_next() && is_surrounded_with(get_next(), L'{', L'}')) {
             model.episode = desurround(get_next());
             ++fieldcount;
         }

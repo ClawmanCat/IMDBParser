@@ -15,6 +15,7 @@
 FieldLayout {                                                                               \
     #Field,                                                                                 \
     IMDBParser::Detail::get_layout_size<decltype(Class::Field)>(),                          \
+    IMDBParser::Detail::get_layout_count<decltype(Class::Field)>(),                         \
     IMDBParser::Detail::get_addressor_fn<decltype(Class::Field), offsetof(Class, Field)>(), \
     IMDBParser::Detail::get_layout_type<decltype(Class::Field)>()                           \
 }
@@ -23,7 +24,7 @@ FieldLayout {                                                                   
 namespace IMDBParser {
     struct FieldLayout {
         std::string_view name;
-        std::size_t size;
+        std::size_t size, count;
         // Containing object => address of data.
         Fn<const void*, const void*> addressor_fn;
 
@@ -38,15 +39,19 @@ namespace IMDBParser {
 
     namespace Detail {
         template <typename T> constexpr inline std::size_t get_layout_size(void) {
-            if constexpr (is_template_instantiation_v<T, std::optional>) return sizeof(typename T::value_type);
+            if constexpr (is_template_instantiation_v<T, std::optional> || is_std_array_v<T>) return get_layout_size<typename T::value_type>();
             else return sizeof(T);
         }
 
 
+        template <typename T> constexpr inline std::size_t get_layout_count(void) {
+            if constexpr (is_std_array_v<T>) return sizeof(T) / sizeof(typename T::value_type);
+            else return 1;
+        }
 
 
         template <typename T> constexpr inline FieldLayout::Type get_layout_type(void) {
-            if constexpr (is_template_instantiation_v<T, std::optional>) return get_layout_type<typename T::value_type>();
+            if constexpr (is_template_instantiation_v<T, std::optional> || is_std_array_v<T>) return get_layout_type<typename T::value_type>();
 
             else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>)                                     return FieldLayout::INT;
             else if constexpr (std::is_integral_v<T>)                                                            return FieldLayout::UINT;

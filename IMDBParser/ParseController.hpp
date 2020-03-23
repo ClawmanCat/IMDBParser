@@ -6,6 +6,7 @@
 #include <IMDBParser/Parsers/ActorParser.hpp>
 #include <IMDBParser/Parsers/MovieParser.hpp>
 #include <IMDBParser/Parsers/LanguageParser.hpp>
+#include <IMDBParser/Parsers/RatingParser.hpp>
 
 #include <boost/preprocessor.hpp>
 
@@ -35,10 +36,11 @@ namespace IMDBParser {
 
 
         const static inline std::tuple list_parsers = std::make_tuple(
-            std::tuple { L"movies.list",    MovieParser         },
-            std::tuple { L"language.list",  MovieLanguageParser },
-            std::tuple { L"actresses.list", ActressParser       },
-            std::tuple { L"actors.list",    ActorParser         }
+            // std::tuple { L"movies.list",    MovieParser         },
+            // std::tuple { L"language.list",  MovieLanguageParser },
+            // std::tuple { L"actresses.list", ActressParser       },
+            // std::tuple { L"actors.list",    ActorParser         },
+            std::tuple { L"ratings.list", RatingParser }
         );
 
         
