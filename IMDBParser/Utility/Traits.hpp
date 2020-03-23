@@ -38,4 +38,16 @@ namespace IMDBParser {
     };
 
     template <typename T, template <typename...> typename TP> constexpr static bool is_template_instantiation_v = is_template_instantiation<T, TP>::value;
+
+
+    // Above doesn't work for templates that take value-parameters.
+    template <typename T> struct is_std_array {
+    private:
+        template <typename X>                struct test                   { constexpr static bool value = false; };
+        template <typename X, std::size_t S> struct test<std::array<X, S>> { constexpr static bool value = true;  };
+    public:
+        constexpr static bool value = test<T>::value;
+    };
+
+    template <typename T> constexpr static bool is_std_array_v = is_std_array<T>::value;
 }

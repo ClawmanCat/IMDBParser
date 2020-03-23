@@ -9,7 +9,7 @@
 
 namespace IMDBParser {
     struct ModelActor : public IDataModel<ModelActor> {
-        bool is_male = true;
+        bool is_male;
         std::wstring name;
         std::wstring firstname, lastname;    // May be null
         std::wstring nickname;               // May be null

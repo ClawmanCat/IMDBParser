@@ -104,8 +104,10 @@ namespace IMDBParser {
                     appearance.media_type = ModelActorAppearance::MediaType::MINI_TV_SERIES;
                     appearance.release_type = ModelActorAppearance::ReleaseType::TV;
                 } else {
-                    movie_parser_release_info(appearance, get_next());
-                    if (matches_any(get_next(), L"TV", L"V", L"VG")) ++fieldcount;
+                    if (has_next()) {
+                        movie_parser_release_info(appearance, get_next());
+                        if (matches_any(get_next(), L"TV", L"V", L"VG")) ++fieldcount;
+                    } else appearance.release_type = ModelActorAppearance::ReleaseType::CINEMA;
                 }
 
 

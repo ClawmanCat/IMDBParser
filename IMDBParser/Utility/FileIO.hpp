@@ -77,14 +77,17 @@ namespace IMDBParser::FileIO {
     inline void write_csv(std::wstring_view path, const std::vector<Model>& data) {
         constexpr std::wstring_view seperator = L";";
 
-
         const std::vector<FieldLayout> layout = Model::GetLayout();
-
         std::vector<std::wstring> result;
 
 
         std::wstring header;
-        for (const auto& field : layout) header.append(join_variadic(L"", to_wstring(field.name), seperator));
+        for (const auto& field : layout) {
+            for (unsigned i = 0; i < field.count; ++i) {
+                std::wstring suffix = (field.count == 1) ? L"" : join_variadic(L"", L"_", std::to_wstring(i));
+                header.append(join_variadic(L"", to_wstring(field.name), suffix, seperator));
+            }
+        }
         header.pop_back();  // Trailing comma
 
         result.push_back(header);
@@ -93,28 +96,33 @@ namespace IMDBParser::FileIO {
         for (const auto& obj : data) {
             std::wstringstream row;
 
+
             for (const auto& field : layout) {
                 const void* address = field.addressor_fn(&obj);
 
-                if (!address) {
-                    row << seperator;
-                    continue;
-                }
+                for (unsigned i = 0; i < field.count; ++i) {
+                    const void* elem_address = ((uint8_t*) address) + (i * field.size);
 
-                switch (field.type) {
-                    case FieldLayout::INT:
-                        row << Memory::parse_signed(address, field.size) << seperator;
-                        break;
-                    case FieldLayout::UINT:
-                        row << Memory::parse_unsigned(address, field.size) << seperator;
-                        break;
-                    case FieldLayout::FLOAT:
-                        row << Memory::parse_float(address, field.size) << seperator;
-                        break;
-                    case FieldLayout::NVARCHAR:
-                        row << Memory::parse_string(address, field.size) << seperator;
-                        break;
-                    default: unreachable_path;
+                    if (!address) {
+                        row << seperator;
+                        continue;
+                    }
+
+                    switch (field.type) {
+                        case FieldLayout::INT:
+                            row << Memory::parse_signed(elem_address, field.size) << seperator;
+                            break;
+                        case FieldLayout::UINT:
+                            row << Memory::parse_unsigned(elem_address, field.size) << seperator;
+                            break;
+                        case FieldLayout::FLOAT:
+                            row << Memory::parse_float(elem_address, field.size) << seperator;
+                            break;
+                        case FieldLayout::NVARCHAR:
+                            row << Memory::parse_string(elem_address, field.size) << seperator;
+                            break;
+                        default: unreachable_path;
+                    }
                 }
             }
 

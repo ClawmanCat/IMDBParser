@@ -34,6 +34,7 @@ set(PARSER_DATASRC ${CMAKE_CURRENT_SOURCE_DIR}/data/compressed/)
 set(PARSER_DATADST ${CMAKE_CURRENT_SOURCE_DIR}/data/decompressed/)
 
 # Add data sources here to automatically download and extract them:
+# TODO: Fix these links, add genres.list.gz
 set(PARSER_DATAFILES
      "actors.list.gz\;http://srv-7.directserver.us/?file=mega_12494fec62"
      "actresses.list.gz\;http://srv-15.directserver.us/?file=mega_10ee6a135b"
