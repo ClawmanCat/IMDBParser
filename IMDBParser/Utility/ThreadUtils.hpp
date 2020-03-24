@@ -23,8 +23,14 @@ namespace IMDBParser {
 
         for (unsigned i = 0; i < limit; ++i) {
             futures.push_back(std::async(std::launch::async, [&]() {
-                for (unsigned index = tasks_done++; index < data.size(); index = tasks_done++) {
-                    results[index] = map(data[index]);
+                try {
+                    for (unsigned index = tasks_done++; index < data.size(); index = tasks_done++) {
+                        results[index] = map(data[index]);
+                    }
+                }
+                catch (...) {
+                    auto p = std::current_exception();
+                    int w = 0;
                 }
             }));
         }
