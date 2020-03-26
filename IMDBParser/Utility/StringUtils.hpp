@@ -259,4 +259,23 @@ namespace IMDBParser {
             std::wstring_view(&*source.begin() + end, source.length() - end)
         };
     }
+
+
+    inline std::wstring escape_string(std::wstring_view v, std::wstring_view escape_chars) {
+        std::wstring result;
+        result.reserve(v.size());
+
+        for (auto ch : v) {
+            for (auto escape : escape_chars) {
+                if (ch == escape) {
+                    result.push_back(L'\\');
+                    break;
+                }
+            }
+
+            result.push_back(ch);
+        }
+
+        return result;
+    };
 }

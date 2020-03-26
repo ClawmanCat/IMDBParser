@@ -119,7 +119,7 @@ namespace IMDBParser::FileIO {
                             row << Memory::parse_float(elem_address, field.size) << seperator;
                             break;
                         case FieldLayout::NVARCHAR:
-                            row << Memory::parse_string(elem_address, field.size) << seperator;
+                            row << escape_string(Memory::parse_string(elem_address, field.size), L";\\") << seperator;
                             break;
                         default: unreachable_path;
                     }
