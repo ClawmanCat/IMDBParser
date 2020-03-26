@@ -39,15 +39,14 @@ namespace IMDBParser {
 
 
         const static inline std::tuple list_parsers = std::make_tuple(
-            //std::tuple { L"movies.list",      MovieParser         },
-            //std::tuple { L"language.list",    MovieLanguageParser },
-            //std::tuple { L"actresses.list",   ActressParser       },
-            //std::tuple { L"actors.list",      ActorParser         },
-            //std::tuple { L"ratings.list",     RatingParser        },
-            //std::tuple { L"locations.list",   LocationParser      },
-            //std::tuple { L"genres.list",      GenreParser         },
-            //std::tuple { L"biographies.list", LifespanParser      }
-            std::tuple{ L"actresses_test.list", ActressTestParser }
+            std::tuple { L"movies.list",      MovieParser         },
+            std::tuple { L"language.list",    MovieLanguageParser },
+            std::tuple { L"actresses.list",   ActressParser       },
+            std::tuple { L"actors.list",      ActorParser         },
+            std::tuple { L"ratings.list",     RatingParser        },
+            std::tuple { L"locations.list",   LocationParser      },
+            std::tuple { L"genres.list",      GenreParser         },
+            std::tuple { L"biographies.list", LifespanParser      }
         );
 
         
